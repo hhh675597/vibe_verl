@@ -146,6 +146,9 @@ trainer:
   # Directory for logging rollout data; no dump if null
   rollout_data_dir: null
 
+  # Number of rollout samples to dump when logging rollout data
+  rollout_data_num: 2
+
   # Directory for logging validation data; no dump if null
   validation_data_dir: null
 

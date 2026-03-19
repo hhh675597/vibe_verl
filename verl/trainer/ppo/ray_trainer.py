@@ -450,7 +450,7 @@ class RayPPOTrainer:
         except Exception as e:
             print(f"Warning: Could not set total_training_steps in config. Structure missing? Error: {e}")
 
-    def _dump_generations(self, inputs, outputs, gts, scores, reward_extra_infos_dict, dump_path):
+    def _dump_generations(self, inputs, outputs, gts, scores, reward_extra_infos_dict, dump_path, num_to_dump: int = 2):
         """Dump rollout/validation samples as JSONL."""
         os.makedirs(dump_path, exist_ok=True)
         filename = os.path.join(dump_path, f"{self.global_steps}.jsonl")
@@ -469,7 +469,8 @@ class RayPPOTrainer:
                 base_data[k] = v
 
         lines = []
-        for i in range(n):
+        # for i in range(n):
+        for i in range(min(n, num_to_dump)): # we do not need to dump all samples, which can be very large. Just dump the first few samples for inspect reward hacking.
             entry = {k: v[i] for k, v in base_data.items()}
             lines.append(json.dumps(entry, ensure_ascii=False))
 
@@ -479,7 +480,8 @@ class RayPPOTrainer:
         print(f"Dumped generations to {filename}")
 
     def _log_rollout_data(
-        self, batch: DataProto, reward_extra_infos_dict: dict, timing_raw: dict, rollout_data_dir: str
+        self, batch: DataProto, reward_extra_infos_dict: dict, timing_raw: dict, rollout_data_dir: str,
+        rollout_data_num: int = 2
     ):
         """Log rollout data to disk.
         Args:
@@ -508,6 +510,7 @@ class RayPPOTrainer:
                 scores=scores,
                 reward_extra_infos_dict=reward_extra_infos_to_dump,
                 dump_path=rollout_data_dir,
+                num_to_dump=rollout_data_num,
             )
 
     def _maybe_log_val_generations(self, inputs, outputs, scores):
@@ -1641,8 +1644,9 @@ class RayPPOTrainer:
 
                     # Log rollout generations if enabled
                     rollout_data_dir = self.config.trainer.get("rollout_data_dir", None)
+                    rollout_data_num = self.config.trainer.get("rollout_data_num", 2)
                     if rollout_data_dir:
-                        self._log_rollout_data(batch, reward_extra_infos_dict, timing_raw, rollout_data_dir)
+                        self._log_rollout_data(batch, reward_extra_infos_dict, timing_raw, rollout_data_dir, rollout_data_num)
 
                 # validate
                 if (
