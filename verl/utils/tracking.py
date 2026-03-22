@@ -15,6 +15,8 @@
 A unified tracking interface that supports logging data to different backend
 """
 
+import json
+import os
 import dataclasses
 from enum import Enum
 from functools import partial
@@ -33,7 +35,7 @@ class Tracking:
         logger: Dictionary of initialized logger instances for each backend.
     """
 
-    supported_backend = ["wandb", "mlflow", "swanlab", "vemlp_wandb", "tensorboard", "console", "clearml"]
+    supported_backend = ["wandb", "mlflow", "swanlab", "vemlp_wandb", "tensorboard", "console", "clearml", "file"]
 
     def __init__(self, project_name, experiment_name, default_backend: Union[str, List[str]] = "console", config=None):
         if isinstance(default_backend, str):
@@ -121,6 +123,9 @@ class Tracking:
             self.console_logger = LocalLogger(print_to_console=True)
             self.logger["console"] = self.console_logger
 
+        if "file" in default_backend:
+            self.logger["file"] = FileLogger(project_name, experiment_name)
+
         if "clearml" in default_backend:
             self.logger["clearml"] = ClearMLLogger(project_name, experiment_name, config)
 
@@ -130,6 +135,8 @@ class Tracking:
                 logger_instance.log(data=data, step=step)
 
     def __del__(self):
+        if not hasattr(self, "logger"):
+            return
         if "wandb" in self.logger:
             self.logger["wandb"].finish(exit_code=0)
         if "swanlab" in self.logger:
@@ -138,6 +145,8 @@ class Tracking:
             self.logger["vemlp_wandb"].finish(exit_code=0)
         if "tensorboard" in self.logger:
             self.logger["tensorboard"].finish()
+        if "file" in self.logger:
+            self.logger["file"].finish()
 
         if "clearnml" in self.logger:
             self.logger["clearnml"].finish()
@@ -211,12 +220,54 @@ class _TensorboardAdapter:
         self.writer.close()
 
 
+class FileLogger:
+    def __init__(self, project_name: str, experiment_name: str):
+        self.project_name = project_name
+        self.experiment_name = experiment_name
+        self.filepath = os.getenv("VERL_FILE_LOGGER_PATH", None)
+        if self.filepath is None:
+            root_path = os.path.expanduser(os.getenv("VERL_FILE_LOGGER_ROOT", "."))
+            directory = os.path.join(root_path, self.project_name)
+            os.makedirs(directory, exist_ok=True)
+            self.filepath = os.path.join(directory, f"{self.experiment_name}.jsonl")
+            print(f"Creating file logger at {self.filepath}")
+        self.fp = open(self.filepath, "w", encoding="utf-8")
+
+    def log(self, data, step):
+        record = {
+            "step": int(step),
+            "data": _to_jsonable(data),
+        }
+        self.fp.write(json.dumps(record, ensure_ascii=False))
+        self.fp.write("\n")
+        self.fp.flush()
+
+    def finish(self):
+        if not self.fp.closed:
+            self.fp.close()
+
+
 class _MlflowLoggingAdapter:
     def log(self, data, step):
         import mlflow
 
         results = {k.replace("@", "_at_"): v for k, v in data.items()}
         mlflow.log_metrics(metrics=results, step=step)
+
+
+def _to_jsonable(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(k): _to_jsonable(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_to_jsonable(v) for v in value]
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except Exception:
+            pass
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    return str(value)
 
 
 def _compute_mlflow_params_from_objects(params) -> Dict[str, Any]:

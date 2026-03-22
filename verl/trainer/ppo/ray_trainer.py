@@ -88,6 +88,7 @@ class AdvantageEstimator(str, Enum):
 
     GAE = "gae"
     GRPO = "grpo"
+    MAXRL = "maxrl"
     REINFORCE_PLUS_PLUS = "reinforce_plus_plus"
     REINFORCE_PLUS_PLUS_BASELINE = "reinforce_plus_plus_baseline"
     REMAX = "remax"
@@ -297,6 +298,16 @@ def compute_advantage(data: DataProto, adv_estimator, gamma=1.0, lam=1.0, num_re
         )
         data.batch["advantages"] = advantages
         data.batch["returns"] = returns
+    elif adv_estimator == AdvantageEstimator.MAXRL:
+        advantages, returns = core_algos.compute_maxrl_outcome_advantage(
+            token_level_rewards=data.batch["token_level_rewards"],
+            response_mask=data.batch["response_mask"],
+            index=data.non_tensor_batch["uid"],
+            traj_index=data.non_tensor_batch['traj_uid'],
+            norm_adv_by_std_in_grpo=norm_adv_by_std_in_grpo,
+        )
+        data.batch["advantages"] = advantages
+        data.batch["returns"] = returns
     elif adv_estimator == AdvantageEstimator.GRPO_PASSK:
         advantages, returns = core_algos.compute_grpo_passk_outcome_advantage(
             token_level_rewards=data.batch["token_level_rewards"],
@@ -446,6 +457,7 @@ class RayPPOTrainer:
             self.use_critic = True
         elif self.config.algorithm.adv_estimator in [
             AdvantageEstimator.GRPO,
+            AdvantageEstimator.MAXRL,
             AdvantageEstimator.GRPO_PASSK,
             AdvantageEstimator.REINFORCE_PLUS_PLUS,
             AdvantageEstimator.REMAX,

@@ -3,8 +3,14 @@
 # Example:
 #   actor_rollout_ref.actor.optim.lr=5e-6
 algorithm.adv_estimator=maxrl
-actor_rollout_ref.model.path=/data/home/zdhs0086/hhh/vibe-verl/models/DS-Distill-Qwen-1.5B
-actor_rollout_ref.rollout.mode=sync
+actor_rollout_ref.model.path=/data/home/zdhs0086/hhh/verl-agent/models/DS-Distill-Qwen-1.5B
 actor_rollout_ref.rollout.max_num_batched_tokens=9216
-data.train_files=/data/home/zdhs0086/hhh/vibe-verl/data/math/train.parquet
-data.val_files=/data/home/zdhs0086/hhh/vibe-verl/data/math/test.parquet
+actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1
+actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=1
+actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=1
+data.train_files=/data/home/zdhs0086/hhh/verl-agent/data/train.parquet
+data.val_files=/data/home/zdhs0086/hhh/verl-agent/data/test.parquet
+data.return_raw_chat=True
+ray_init.num_cpus=64
+env.env_name=math
+env.max_steps=1

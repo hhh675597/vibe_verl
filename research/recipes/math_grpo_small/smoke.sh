@@ -12,12 +12,13 @@ SMOKE_PPO_MINI_BATCH_SIZE="${SMOKE_PPO_MINI_BATCH_SIZE:-${SMOKE_TRAIN_BATCH_SIZE
 PROFILE_OVERRIDES=(
   "data.train_batch_size=${SMOKE_TRAIN_BATCH_SIZE}"
   "data.val_batch_size=${SMOKE_VAL_BATCH_SIZE}"
-  "actor_rollout_ref.rollout.n=${SMOKE_ROLLOUT_N}"
+  "env.rollout.n=${SMOKE_ROLLOUT_N}"
   "actor_rollout_ref.actor.ppo_mini_batch_size=${SMOKE_PPO_MINI_BATCH_SIZE}"
   "actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1"
   "actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=1"
   "actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=1"
-  "trainer.test_freq=1"
+  "trainer.val_before_train=False"
+  "trainer.test_freq=-1"
   "trainer.save_freq=-1"
   "trainer.total_training_steps=${SMOKE_TOTAL_TRAINING_STEPS}"
 )

@@ -8,18 +8,18 @@ PYTHON_BIN="${PYTHON_BIN:-$HOME/.conda/envs/vibe-verl/bin/python}"
 PROJECT_NAME="${PROJECT_NAME:-vibe-verl-maxrl}"
 TRAINER_LOGGERS="${TRAINER_LOGGERS:-['wandb','file']}"
 PRIMARY_METRIC_MODE="max"
-PRIMARY_METRIC_PATTERN='^val-core/.+/reward/mean@1$'
+PRIMARY_METRIC_PATTERN='^val/.+/test_score$'
 
-MODEL_PATH="/data/home/zdhs0086/hhh/vibe-verl/models/DS-Distill-Qwen-1.5B"
-TRAIN_FILE="/data/home/zdhs0086/hhh/vibe-verl/data/math/train.parquet"
-VAL_FILE="/data/home/zdhs0086/hhh/vibe-verl/data/math/test.parquet"
+MODEL_PATH="/data/home/zdhs0086/hhh/verl-agent/models/DS-Distill-Qwen-1.5B"
+TRAIN_FILE="/data/home/zdhs0086/hhh/verl-agent/data/math/train.parquet"
+VAL_FILE="/data/home/zdhs0086/hhh/verl-agent/data/math/test.parquet"
 
 
 MODEL_PATH="${MODEL_PATH:-Qwen/Qwen2.5-0.5B-Instruct}"
 TRAIN_FILE="${TRAIN_FILE:-$HOME/data/gsm8k/train.parquet}"
 VAL_FILE="${VAL_FILE:-$HOME/data/gsm8k/test.parquet}"
 
-N_GPUS_PER_NODE="${N_GPUS_PER_NODE:-1}"
+N_GPUS_PER_NODE="${N_GPUS_PER_NODE:-8}"
 NNODES="${NNODES:-1}"
 RAY_NUM_CPUS="${RAY_NUM_CPUS:-96}"
 ROLLOUT_N="${ROLLOUT_N:-8}"
@@ -42,7 +42,6 @@ BASE_OVERRIDES=(
   "algorithm.kl_ctrl.kl_coef=0.001"
   "data.train_files=${TRAIN_FILE}"
   "data.val_files=${VAL_FILE}"
-  "data.seed=${SEED}"
   "data.train_batch_size=${TRAIN_BATCH_SIZE}"
   "data.val_batch_size=${VAL_BATCH_SIZE}"
   "data.max_prompt_length=${MAX_PROMPT_LENGTH}"
@@ -61,7 +60,6 @@ BASE_OVERRIDES=(
   "actor_rollout_ref.actor.fsdp_config.param_offload=True"
   "actor_rollout_ref.actor.fsdp_config.optimizer_offload=True"
   "actor_rollout_ref.rollout.name=vllm"
-  "actor_rollout_ref.rollout.n=${ROLLOUT_N}"
   "actor_rollout_ref.rollout.tensor_model_parallel_size=${ROLLOUT_TP}"
   "actor_rollout_ref.rollout.gpu_memory_utilization=${ROLLOUT_GPU_MEMORY_UTILIZATION}"
   "actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=${LOG_PROB_MB_PER_GPU}"
@@ -75,7 +73,11 @@ BASE_OVERRIDES=(
   "trainer.test_freq=${TEST_FREQ}"
   "trainer.save_freq=${SAVE_FREQ}"
   "trainer.total_epochs=1"
-  "ray_kwargs.ray_init.num_cpus=${RAY_NUM_CPUS}"
+  "ray_init.num_cpus=${RAY_NUM_CPUS}"
   "trainer.n_gpus_per_node=${N_GPUS_PER_NODE}"
   "trainer.nnodes=${NNODES}"
+  "env.env_name=math"
+  "env.seed=${SEED}"
+  "env.max_steps=2"
+  "env.rollout.n=${ROLLOUT_N}"
 )

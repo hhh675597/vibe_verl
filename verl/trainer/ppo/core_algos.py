@@ -236,6 +236,58 @@ def compute_grpo_passk_outcome_advantage(
     return advantages, advantages
 
 
+def compute_maxrl_outcome_advantage(
+    token_level_rewards: torch.Tensor,
+    response_mask: torch.Tensor,
+    index: np.ndarray,
+    traj_index: np.ndarray,
+    epsilon: float = 1e-6,
+    norm_adv_by_std_in_grpo: bool = True,
+    compute_mean_std_cross_steps: bool = True,
+):
+    """
+    Compute the MaxRL outcome advantage.
+
+    MaxRL replaces GRPO's per-group standard deviation normalization with
+    per-group mean reward normalization:
+
+        (r_i - mean_group_reward) / (mean_group_reward + epsilon)
+
+    The ``norm_adv_by_std_in_grpo`` argument is accepted only for API
+    compatibility with the existing trainer call site; MaxRL always uses the
+    mean-normalized form above.
+    """
+    del norm_adv_by_std_in_grpo
+
+    scores = token_level_rewards.sum(dim=-1)
+
+    id2score = defaultdict(list)
+    id2mean = {}
+    seen_pairs = set()
+    with torch.no_grad():
+        bsz = scores.shape[0]
+        for i in range(bsz):
+            if (index[i], traj_index[i]) in seen_pairs:
+                continue
+            id2score[index[i]].append(scores[i])
+            if not compute_mean_std_cross_steps:
+                seen_pairs.add((index[i], traj_index[i]))
+
+        for idx, group_scores in id2score.items():
+            if len(group_scores) == 0:
+                raise ValueError(f"no score in prompt index: {idx}")
+            id2mean[idx] = torch.stack(group_scores).mean()
+
+        advantages = torch.empty_like(scores)
+        for i in range(bsz):
+            group_mean = id2mean[index[i]]
+            advantages[i] = (scores[i] - group_mean) / (group_mean + epsilon)
+
+        advantages = advantages.unsqueeze(-1) * response_mask
+
+    return advantages, advantages
+
+
 def compute_reinforce_plus_plus_baseline_outcome_advantage(token_level_rewards: torch.Tensor, response_mask: torch.Tensor, index: torch.Tensor, traj_index: np.ndarray, epsilon: float = 1e-6, compute_mean_std_cross_steps: bool = True):
     """
     Compute advantage for RF++-baseline (https://arxiv.org/abs/2501.03262), operating only on Outcome reward
