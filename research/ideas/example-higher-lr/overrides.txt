@@ -1,0 +1,2 @@
+# Hydra config overrides for this idea — one per line.
+actor_rollout_ref.actor.optim.lr=5e-6
