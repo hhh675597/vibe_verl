@@ -10,11 +10,6 @@ TRAINER_LOGGERS="${TRAINER_LOGGERS:-['wandb','file']}"
 PRIMARY_METRIC_MODE="max"
 PRIMARY_METRIC_PATTERN='^val/.+/test_score$'
 
-MODEL_PATH="/data/home/zdhs0086/hhh/verl-agent/models/DS-Distill-Qwen-1.5B"
-TRAIN_FILE="/data/home/zdhs0086/hhh/verl-agent/data/math/train.parquet"
-VAL_FILE="/data/home/zdhs0086/hhh/verl-agent/data/math/test.parquet"
-
-
 MODEL_PATH="${MODEL_PATH:-Qwen/Qwen2.5-0.5B-Instruct}"
 TRAIN_FILE="${TRAIN_FILE:-$HOME/data/gsm8k/train.parquet}"
 VAL_FILE="${VAL_FILE:-$HOME/data/gsm8k/test.parquet}"

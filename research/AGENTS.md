@@ -44,6 +44,13 @@ bash research/bin/run_experiment.sh \
     --recipe <RECIPE> --profile full \
     --idea research/ideas/<idea_id>
 ```
+- **During the run**: periodically check `metrics.jsonl` to monitor training health:
+  ```bash
+  tail -1 research/runs/<run_id>/metrics.jsonl | python3 -c "
+  import json,sys; d=json.loads(sys.stdin.readline())
+  print(json.dumps({k:d['data'].get(k) for k in ['training/global_step','critic/rewards/mean','actor/grad_norm'] if k in d.get('data',{})}, indent=2))"
+  ```
+  Watch for: reward trending up (good), NaN in grad_norm (stop immediately), reward stuck at 0 (likely bug), grad_norm exploding (instability).
 - **After the run**: update `spec.md` — check off the step, add a `## Log` entry with the result (metric value, duration, or failure reason).
 
 ### Phase 6 — Report
@@ -198,6 +205,27 @@ After every failed attempt, add an entry to `spec.md` → `## Log`:
 - 2025-03-20 14:30  Smoke failed (OOM). Reduced micro_batch from 2 to 1.
 - 2025-03-20 14:45  Smoke failed (Hydra error). Fixed typo: kl_coeff → kl_coef.
 - 2025-03-20 15:00  Smoke passed. reward=0.38, looks reasonable.
+```
+
+---
+
+## Resuming After Session Interruption
+
+Full runs can take hours. If your session was interrupted, all artifacts are already on disk — pick up where you left off:
+
+```bash
+# Find the latest run_id for this idea
+tail -1 research/ideas/<idea_id>/.runs
+
+# Check if it finished (summary.json exists only after completion)
+ls research/runs/<run_id>/summary.json
+
+# If finished — read the result
+python3 -c "import json; s=json.load(open('research/runs/<run_id>/summary.json'));
+print(json.dumps({k:s.get(k) for k in ['status','best_primary_metric','primary_metric_key','duration_sec']}, indent=2))"
+
+# If still running — check progress
+tail -3 research/runs/<run_id>/metrics.jsonl
 ```
 
 ---

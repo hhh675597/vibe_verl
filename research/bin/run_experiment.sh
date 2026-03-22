@@ -264,6 +264,12 @@ json_msg() {
 
 json_msg event init run_id "$RUN_ID" run_dir "$RUN_DIR" command "$COMMAND_PATH"
 
+# Track this run in the idea workspace immediately — before training starts,
+# so the run is recorded even if the process is killed mid-training.
+if [[ -n "$IDEA_DIR" ]]; then
+    echo "$RUN_ID" >> "${IDEA_DIR}/.runs"
+fi
+
 if [[ "$DRY_RUN" -eq 1 ]]; then
     json_msg event done run_id "$RUN_ID" dry_run "true"
     exit 0
@@ -337,11 +343,6 @@ else
     json_msg event done run_id "$RUN_ID" status "harness_error" \
         exit_code "$EXIT_CODE" duration_sec "$DURATION_SECONDS" \
         error "post-run summarization failed; check $RUN_DIR/driver.log"
-fi
-
-# Track this run in the idea workspace
-if [[ -n "$IDEA_DIR" ]]; then
-    echo "$RUN_ID" >> "${IDEA_DIR}/.runs"
 fi
 
 # Harness always exits 0; training status is in the JSON output and summary.json.

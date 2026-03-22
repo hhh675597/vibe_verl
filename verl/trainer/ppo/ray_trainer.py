@@ -650,29 +650,37 @@ class RayPPOTrainer:
         except Exception as e:
             print(f"Warning: Could not set total_training_steps in config. Structure missing? Error: {e}")
 
-    def _dump_generations(self, inputs, outputs, scores, reward_extra_infos_dict, dump_path):
-        """Dump rollout/validation samples as JSONL."""
+    def _dump_generations(self, inputs, outputs, scores, reward_extra_infos_dict, dump_path, max_samples=None):
+        """Dump rollout/validation samples as JSONL.
+
+        Args:
+            max_samples: If set, only dump the first N samples. Keeps file
+                sizes manageable for large batches.
+        """
         os.makedirs(dump_path, exist_ok=True)
         filename = os.path.join(dump_path, f"{self.global_steps}.jsonl")
 
         n = len(inputs)
+        if max_samples is not None and max_samples < n:
+            n = max_samples
+
         base_data = {
-            "input": inputs,
-            "output": outputs,
-            "score": scores,
+            "input": inputs[:n],
+            "output": outputs[:n],
+            "score": scores[:n],
             "step": [self.global_steps] * n,
         }
 
         for k, v in reward_extra_infos_dict.items():
-            if len(v) == n:
-                base_data[k] = v
+            if len(v) >= n:
+                base_data[k] = v[:n]
 
         with open(filename, "w") as f:
             for i in range(n):
                 entry = {k: v[i] for k, v in base_data.items()}
                 f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
-        print(f"Dumped generations to {filename}")
+        print(f"Dumped {n} generations to {filename}")
 
     def _maybe_log_val_generations(self, inputs, outputs, scores):
         """Log a table of validation samples to the configured logger (wandb or swanlab)"""
@@ -795,6 +803,19 @@ class RayPPOTrainer:
                         assert test_batch.non_tensor_batch[k][0] == test_batch.non_tensor_batch[k][i], f'not all success_rate are the same, 0: {test_batch.non_tensor_batch[k][0]}, {i}: {test_batch.non_tensor_batch[k][i]}'
 
         self._maybe_log_val_generations(inputs=sample_inputs, outputs=sample_outputs, scores=sample_scores)
+
+        # Dump validation generations to disk if configured
+        val_data_dir = self.config.trainer.get("validation_data_dir", None)
+        if val_data_dir:
+            max_samples = self.config.trainer.get("dump_generations_max_samples", 2)
+            self._dump_generations(
+                inputs=sample_inputs,
+                outputs=sample_outputs,
+                scores=sample_scores,
+                reward_extra_infos_dict={},
+                dump_path=val_data_dir,
+                max_samples=max_samples,
+            )
 
         reward_tensor = torch.cat(reward_tensor_lst, dim=0).sum(-1).cpu()  # (batch_size,)
         data_sources = np.concatenate(data_source_lst, axis=0)
@@ -1271,12 +1292,14 @@ class RayPPOTrainer:
                             inputs = self.tokenizer.batch_decode(batch.batch["prompts"], skip_special_tokens=True)
                             outputs = self.tokenizer.batch_decode(batch.batch["responses"], skip_special_tokens=True)
                             scores = batch.batch["token_level_scores"].sum(-1).cpu().tolist()
+                            max_samples = self.config.trainer.get("dump_generations_max_samples", 2)
                             self._dump_generations(
                                 inputs=inputs,
                                 outputs=outputs,
                                 scores=scores,
                                 reward_extra_infos_dict=reward_extra_infos_dict,
                                 dump_path=rollout_data_dir,
+                                max_samples=max_samples,
                             )
 
                     # validate

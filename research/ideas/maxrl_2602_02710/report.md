@@ -44,7 +44,7 @@
 - **Traceback**:
 ```
 Traceback (most recent call last):
-  File "/data/home/zdhs0086/hhh/verl-agent/verl/trainer/main_ppo.py", line 31, in main
+  File "<repo>/verl/trainer/main_ppo.py", line 31, in main
     run_ppo(config)
 ```
 
@@ -52,7 +52,7 @@ Traceback (most recent call last):
 - **Status**: failed (exit code 1)
 - **Log tail** (last 5 lines):
 ```
-/data/home/zdhs0086/.conda/envs/vibe-verl/lib/python3.10/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+<conda>/lib/python3.10/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
   import pynvml  # type: ignore[import]
 ray init kwargs: {'num_cpus': 96, 'runtime_env': {'env_vars': {'TOKENIZERS_PARALLELISM': 'true', 'NCCL_DEBUG': 'WARN', 'VLLM_LOGGING_LEVEL': 'WARN', 'VLLM_ALLOW_RUNTIME_LORA_UPDATING': 'true', 'VLLM_ALLREDUCE_USE_SYMM_MEM': '0', 'CUDA_DEVICE_MAX_CONNECTIONS': '1', 'NCCL_CUMEM_ENABLE': '0'}, 'working_dir': None}}
 2026-03-22 10:33:43,575	INFO worker.py:1879 -- Started a local Ray instance. View the dashboard at [1m[32m127.0.0.1:8265 [39m[22m
@@ -64,11 +64,11 @@ ray init kwargs: {'num_cpus': 96, 'runtime_env': {'env_vars': {'TOKENIZERS_PARAL
 - **Traceback**:
 ```
 [36m(TaskRunner pid=2774860)[0m Traceback (most recent call last):
-[36m(TaskRunner pid=2774860)[0m   File "/data/home/zdhs0086/hhh/verl-agent/verl/utils/tracking.py", line 133, in __del__
+[36m(TaskRunner pid=2774860)[0m   File "<repo>/verl/utils/tracking.py", line 133, in __del__
 [36m(TaskRunner pid=2774860)[0m     if "wandb" in self.logger:
 [36m(TaskRunner pid=2774860)[0m AttributeError: 'Tracking' object has no attribute 'logger'
 [36m(WorkerDict pid=2778543)[0m kwargs: {'n': 1, 'logprobs': 0, 'max_tokens': 8192, 'detokenize': False, 'temperature': 1.0, 'top_k': -1, 'top_p': 1, 'ignore_eos': False}
-[36m(WorkerDict pid=2778543)[0m /data/home/zdhs0086/.conda/envs/vibe-verl/lib/python3.10/site-packages/torch/distributed/fsdp/fully_sharded_data_parallel.py:690: FutureWarning: FSDP.state_dict_type() and FSDP.set_state_dict_type() are being deprecated. Please use APIs, get_state_dict() and set_state_dict(), which can support different parallelisms, FSDP1, FSDP2, DDP. API doc: https://pytorch.org/docs/stable/distributed.checkpoint.html#torch.distributed.checkpoint.state_dict.get_state_dict .Tutorial: https://pytorch.org/tutorials/recipes/distributed_checkpoint_recipe.html .
+[36m(WorkerDict pid=2778543)[0m <conda>/lib/python3.10/site-packages/torch/distributed/fsdp/fully_sharded_data_parallel.py:690: FutureWarning: FSDP.state_dict_type() and FSDP.set_state_dict_type() are being deprecated. Please use APIs, get_state_dict() and set_state_dict(), which can support different parallelisms, FSDP1, FSDP2, DDP. API doc: https://pytorch.org/docs/stable/distributed.checkpoint.html#torch.distributed.checkpoint.state_dict.get_state_dict .Tutorial: https://pytorch.org/tutorials/recipes/distributed_checkpoint_recipe.html .
 [36m(WorkerDict pid=2778543)[0m   warnings.warn(
 ```
 
@@ -76,7 +76,7 @@ ray init kwargs: {'num_cpus': 96, 'runtime_env': {'env_vars': {'TOKENIZERS_PARAL
 - **Status**: failed (exit code 1)
 - **Log tail** (last 9 lines):
 ```
-/data/home/zdhs0086/.conda/envs/vibe-verl/lib/python3.10/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+<conda>/lib/python3.10/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
   import pynvml  # type: ignore[import]
 Could not override 'env.name'.
 To append to your config use +env.name=math
@@ -92,7 +92,7 @@ Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.
 - **Traceback**:
 ```
 Traceback (most recent call last):
-  File "/data/home/zdhs0086/hhh/verl-agent/verl/trainer/main_ppo.py", line 31, in main
+  File "<repo>/verl/trainer/main_ppo.py", line 31, in main
     run_ppo(config)
 ```
 
@@ -122,7 +122,7 @@ PC: @     0x14786444c81c  (unknown)  __read
 - **Traceback**:
 ```
 Traceback (most recent call last):
-  File "/data/home/zdhs0086/hhh/verl-agent/verl/trainer/main_ppo.py", line 31, in main
+  File "<repo>/verl/trainer/main_ppo.py", line 31, in main
     run_ppo(config)
 ```
 
@@ -152,7 +152,7 @@ PC: @     0x154c6dc9b117  (unknown)  (unknown)
 - **Traceback**:
 ```
 Traceback (most recent call last):
-  File "/data/home/zdhs0086/hhh/verl-agent/verl/trainer/main_ppo.py", line 31, in main
+  File "<repo>/verl/trainer/main_ppo.py", line 31, in main
     run_ppo(config)
 ```
 
